@@ -93,8 +93,11 @@ async function scraper (url) {
     // Case Details Materials tab
     let materials = $('div#materials').children('p');
     let material_details = [];
+    let decisions = [];
     for (let i = 0; i < materials.length; i++) {
       if (!$(materials).text().includes("No References Available.")) {
+        // add published decisions to separate field
+        decisions.push($(materials[i]).find('p span').text());
         // download file and add name and location to JSON
         let href = $(materials[i]).find('a').attr('href');
         let name = $(materials[i]).find('a').prev().text();
@@ -129,8 +132,13 @@ async function scraper (url) {
         }
       }
     };
+
     if (material_details.length > 0) {
-      data[c]['Materials']  = material_details;
+      data[c]['Materials'] = {};
+      data[c]['Materials']['Available'] = material_details;
+      if (decisions.length > 0) {
+        data[c]['Materials']['Published Decisions'] = decisions;
+      }
     }
   }
   fs.writeFile("./data.json", JSON.stringify(data), (error) => {
